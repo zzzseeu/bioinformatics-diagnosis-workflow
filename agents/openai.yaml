@@ -1,0 +1,8 @@
+interface:
+  display_name: "DOCX Analysis Plan Parser"
+  short_description: "Parse proposal Word docs into SOP-level bioinformatics analysis plans"
+  brand_color: "#2E7D6E"
+  default_prompt: "Use $docx-analysis-plan-parser to parse a bioinformatics project proposal .docx and produce a complete SOP-level Chinese Markdown analysis plan."
+
+policy:
+  allow_implicit_invocation: true
