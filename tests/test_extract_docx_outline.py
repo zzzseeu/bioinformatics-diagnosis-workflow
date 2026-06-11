@@ -1,4 +1,5 @@
 import base64
+import builtins
 import importlib.util
 import json
 import zipfile
@@ -120,6 +121,29 @@ def test_extract_docx_outline_extracts_images_inside_tables(tmp_path):
     assert figure["is_reference_only"] is True
     assert Path(figure["extracted_path"]).is_relative_to(out_dir)
     assert "Fig.2 热图示例" in figure["current_text"]
+
+
+def test_extract_docx_outline_falls_back_to_ooxml_when_python_docx_is_missing(tmp_path, monkeypatch):
+    module = load_module()
+    docx_path = tmp_path / "sample.docx"
+    out_dir = tmp_path / "out"
+    build_sample_docx(docx_path)
+    original_import = builtins.__import__
+
+    def import_without_docx(name, *args, **kwargs):
+        if name == "docx":
+            raise ImportError("python-docx unavailable")
+        return original_import(name, *args, **kwargs)
+
+    monkeypatch.setattr(builtins, "__import__", import_without_docx)
+
+    result = module.extract_docx(docx_path, out_dir)
+
+    assert "基于转录组数据探究脓毒症诊断标志物" in result["title_candidates"]
+    assert result["project_id"] == "project-test-0001转录组诊断"
+    assert "GSE185263" in result["dataset_ids"]
+    assert result["tables"][0]["rows"][1] == ["GSE154918", "验证集"]
+    assert len(result["figures"]) == 1
 
 
 def test_cli_writes_json_and_markdown_summary(tmp_path):

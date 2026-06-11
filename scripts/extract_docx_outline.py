@@ -53,6 +53,16 @@ def _text_from_xml(node: ET.Element) -> str:
     return "".join(text.text or "" for text in node.findall(".//w:t", NS)).strip()
 
 
+def _paragraph_style_from_xml(node: ET.Element) -> str:
+    p_style = node.find("./w:pPr/w:pStyle", NS)
+    style_id = ""
+    if p_style is not None:
+        style_id = p_style.attrib.get(f"{{{NS['w']}}}val", "")
+    if re.fullmatch(r"Heading\d+", style_id or ""):
+        return f"Heading {style_id.removeprefix('Heading')}"
+    return style_id or "Normal"
+
+
 def _resolve_relationship_target(target: str, target_mode: str | None = None) -> str | None:
     if target_mode == "External":
         return None
@@ -126,9 +136,10 @@ def _iter_document_events(docx_path: Path):
         tag = child.tag.rsplit("}", 1)[-1]
         if tag == "p":
             text = _text_from_xml(child)
+            style_name = _paragraph_style_from_xml(child)
             image_paths = _image_media_paths(child, rels)
             if text or not image_paths:
-                yield {"kind": "paragraph", "text": text}
+                yield {"kind": "paragraph", "text": text, "style": style_name}
             for media_path in image_paths:
                 yield {"kind": "image", "media_path": media_path, "current_text": text}
         elif tag == "tbl":
@@ -142,7 +153,11 @@ def _iter_document_events(docx_path: Path):
 
 
 def _extract_paragraphs_and_tables(docx_path: Path):
-    docx = _load_docx_module()
+    try:
+        docx = _load_docx_module()
+    except RuntimeError:
+        return _extract_paragraphs_and_tables_from_ooxml(docx_path)
+
     try:
         document = docx.Document(str(docx_path))
     except Exception as exc:
@@ -166,6 +181,31 @@ def _extract_paragraphs_and_tables(docx_path: Path):
     for index, table in enumerate(document.tables, start=1):
         rows = [[cell.text.strip() for cell in row.cells] for row in table.rows]
         tables.append({"index": index, "rows": rows})
+
+    return paragraphs, title_candidates, tables
+
+
+def _extract_paragraphs_and_tables_from_ooxml(docx_path: Path):
+    paragraphs = []
+    title_candidates = []
+    tables = []
+    table_index = 0
+
+    for event in _iter_document_events(docx_path) or []:
+        if event["kind"] == "paragraph":
+            text = str(event["text"]).strip()
+            if not text:
+                continue
+            style_name = str(event.get("style") or "Normal")
+            paragraphs.append({"text": text, "style": style_name})
+            if style_name.lower().startswith(("heading", "title")):
+                title_candidates.append(text)
+        elif event["kind"] == "table":
+            table_index += 1
+            tables.append({"index": table_index, "rows": event["rows"]})
+
+    if not title_candidates and paragraphs:
+        title_candidates.append(paragraphs[0]["text"])
 
     return paragraphs, title_candidates, tables
 
