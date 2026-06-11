@@ -7,6 +7,12 @@ description: Use when Codex needs to parse a bioinformatics project proposal Wor
 
 Parse bioinformatics proposal `.docx` files and generate a faithful, normalized, SOP-level Chinese Markdown analysis plan.
 
+## Dependency Skill
+
+- Also use the `docx` skill whenever this skill is invoked for a `.docx` file. Follow its DOCX reading guidance first: `.docx` is a ZIP archive of XML files; use `pandoc` when available for rich Markdown extraction, or unpack/read raw OOXML when direct parsing is more reliable.
+- Use this skill's `scripts/extract_docx_outline.py` as the domain-specific outline extractor after applying the `docx` skill's document-handling guidance.
+- If `python-docx` is unavailable, the outline extractor falls back to direct OOXML parsing for paragraphs, heading-style title candidates, tables, relationships, and embedded media.
+
 ## Core Rules
 
 - Treat the actual Word document as the source of truth.
@@ -20,13 +26,14 @@ Parse bioinformatics proposal `.docx` files and generate a faithful, normalized,
 ## Workflow
 
 1. Confirm the user provided a `.docx` path or an accessible DOCX file.
-2. Resolve `scripts/extract_docx_outline.py` relative to this skill directory and run it with a DOCX-capable environment.
-3. Read the generated `outline.json` and `outline.md`.
-4. Read `references/output-schema.md` before writing the final answer.
-5. Read `references/module-library.md` for detected modules. For modules not covered there, preserve the source module and write a practical SOP from the source text.
-6. Read `references/docx-patterns.md` when section structure, captions, image context, or extraction ambiguity matters.
-7. Output Chinese Markdown following the schema.
-8. Include `需确认信息` for conflicts, missing metadata, client notes, or ambiguous decisions.
+2. Invoke/read the installed `docx` skill and apply its DOCX reading guidance. Prefer `pandoc --track-changes=all` for rich text when available; use raw OOXML/unpack fallback when parser support is limited or image/table context matters.
+3. Resolve `scripts/extract_docx_outline.py` relative to this skill directory and run it. The script can use `python-docx` or its built-in OOXML fallback.
+4. Read the generated `outline.json` and `outline.md`.
+5. Read `references/output-schema.md` before writing the final answer.
+6. Read `references/module-library.md` for detected modules. For modules not covered there, preserve the source module and write a practical SOP from the source text.
+7. Read `references/docx-patterns.md` when section structure, captions, image context, or extraction ambiguity matters.
+8. Output Chinese Markdown following the schema.
+9. Include `需确认信息` for conflicts, missing metadata, client notes, or ambiguous decisions.
 
 ## Parser Command
 
@@ -36,7 +43,7 @@ Use this pattern from the skill directory, replacing paths as needed:
 python scripts/extract_docx_outline.py /path/to/input.docx --out-dir tmp/docx-analysis-plan/<document-stem>
 ```
 
-If that Python cannot import `docx`, try another available DOCX-capable environment or toolchain. Ask the user which local environment has a DOCX parser only when no usable option is available.
+If that Python cannot import `docx`, continue with the script's OOXML fallback. If richer tracked-change or formatting extraction is needed, use the installed `docx` skill's `pandoc` or unpack workflow. Ask the user which local environment has a DOCX parser only when both direct script extraction and DOCX-skill-guided fallback are unusable.
 
 ## Maintenance
 
