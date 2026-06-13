@@ -26,3 +26,23 @@ def test_openai_agent_contract_uses_bioinformatics_diagnosis_workflow():
 
     assert "生物信息诊断工作流" in agent_text
     assert "bioinformatics-diagnosis-workflow" in agent_text
+
+
+def test_report_template_asset_exists():
+    asset = ROOT / "assets" / "报告格式模板-20250929.docx"
+
+    assert asset.exists()
+    assert asset.stat().st_size > 50_000
+
+
+def test_reference_contracts_exist_and_include_required_rules():
+    required = {
+        "workflow-stages.md": ["默认暂停", "01_requirements", "07_report_qc"],
+        "manifest-schema.md": ["module_id", "execution_mode", "smoke_test_then_manual"],
+        "report-template-map.md": ["<项目编号>_<YYYYMMDD>_report.docx", "只插 PNG", "浅蓝色"],
+        "report-qc-rules.md": ["示例图", "虚构", "PNG"],
+    }
+    for filename, terms in required.items():
+        text = (ROOT / "references" / filename).read_text(encoding="utf-8")
+        for term in terms:
+            assert term in text
