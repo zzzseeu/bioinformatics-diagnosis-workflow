@@ -1,57 +1,52 @@
 ---
-name: docx-analysis-plan-parser
-description: Use when Codex needs to parse a bioinformatics project proposal Word document (`.docx`) and produce a complete SOP-level Chinese Markdown analysis plan. Trigger for requests involving Word方案解析, 项目方案docx, 转录组/单细胞/生信分析方案提取, extracting methods/data/figures from DOCX proposals, or updating this skill when new proposal analysis modules appear.
+name: bioinformatics-diagnosis-workflow
+description: Use when Codex needs to run a staged bioinformatics diagnosis or mechanism workflow from Word方案文档 through requirements extraction, data/result matching, analysis planning, project code generation, manual task handoff, Word report generation, and report QC for single-cell, transcriptome, bulk, multi-omics, or client self-sequenced projects.
 ---
 
-# DOCX Analysis Plan Parser
+# 生物信息诊断工作流
 
-Parse bioinformatics proposal `.docx` files and generate a faithful, normalized, SOP-level Chinese Markdown analysis plan.
+Use this skill for diagnosis/mechanism bioinformatics projects that start from a Word `.docx` proposal and need staged analysis planning, project code generation, result review, and Word report generation.
 
-## Dependency Skill
+## Required Dependency
 
-- Also use the `docx` skill whenever this skill is invoked for a `.docx` file. Follow its DOCX reading guidance first: `.docx` is a ZIP archive of XML files; use `pandoc` when available for rich Markdown extraction, or unpack/read raw OOXML when direct parsing is more reliable.
-- Use this skill's `scripts/extract_docx_outline.py` as the domain-specific outline extractor after applying the `docx` skill's document-handling guidance.
-- If `python-docx` is unavailable, the outline extractor falls back to direct OOXML parsing for paragraphs, heading-style title candidates, tables, relationships, and embedded media.
+- Also use the installed `docx` skill for every `.docx` operation, including proposal parsing, report template reading, and report writing.
+- Treat Word proposal documents as the source of truth.
+- Embedded Word images in proposals are reference/example figures unless the text explicitly says they are real results.
 
 ## Core Rules
 
-- Treat the actual Word document as the source of truth.
-- Preserve the source topic, disease, species, datasets, group design, methods, client notes, and requested modules.
-- Do not invent datasets, genes, sample sizes, PMIDs, conclusions, or analysis results.
-- Do not include standalone `总体技术路线` or `参考文献/PMID` sections by default.
-- Do not hard-code a local environment name. Use any available environment or toolchain that can parse `.docx`; if none is available, ask the user which environment contains a DOCX parser.
-- Embedded Word images are reference/example figures only. Do not infer real genes, values, trends, or conclusions from them.
-- Every final analysis figure described in the plan should be exported as both PNG and PDF, with Times New Roman used for all plot text.
+- Default to staged execution. 每个阶段完成后暂停，等待用户确认再继续。
+- Use Markdown plus `manifest.csv` outputs as user-facing artifacts; JSON is not a primary deliverable.
+- Create and update `workflow/PROJECT_MEMORY.md` for each project.
+- Generate project-specific code from templates when possible.
+- For large single-cell or long-running tasks, run only temporary smoke tests, delete temporary test data/logs, and hand off full execution to the user.
+- Do not keep temporary smoke-test data, logs, or pass/fail records in the project directory.
+- Final report filenames must use `report/<项目编号>_<YYYYMMDD>_report.docx`, with `_v2`, `_v3`, etc. to avoid overwrites.
+- Word reports insert PNG images only. Image order is image, image name, caption; all centered; image name is bold and light blue.
 
 ## Workflow
 
-1. Confirm the user provided a `.docx` path or an accessible DOCX file.
-2. Invoke/read the installed `docx` skill and apply its DOCX reading guidance. Prefer `pandoc --track-changes=all` for rich text when available; use raw OOXML/unpack fallback when parser support is limited or image/table context matters.
-3. Resolve `scripts/extract_docx_outline.py` relative to this skill directory and run it. The script can use `python-docx` or its built-in OOXML fallback.
-4. Read the generated `outline.json` and `outline.md`.
-5. Read `references/output-schema.md` before writing the final answer.
-6. Read `references/module-library.md` for detected modules. For modules not covered there, preserve the source module and write a practical SOP from the source text.
-7. Read `references/docx-patterns.md` when section structure, captions, image context, or extraction ambiguity matters.
-8. Output Chinese Markdown following the schema.
-9. Include `需确认信息` for conflicts, missing metadata, client notes, or ambiguous decisions.
+1. Parse proposal DOCX with the `docx` skill and `scripts/extract_docx_outline.py`.
+2. Write `workflow/01_requirements.md` and `workflow/01_requirements_manifest.csv`; pause.
+3. Check requirements against provided data/result directories; write `02_gap_check.*`; pause.
+4. Generate `03_analysis_plan.md` and `03_analysis_manifest.csv`; pause.
+5. Generate project code from `templates/code/`; run only safe automatic analyses or smoke tests; write `04_generated_code.md` and `04_code_manifest.csv`; pause.
+6. Write manual execution handoff files for long-running or non-code-stable modules; pause.
+7. Scan results and prepare report inputs; pause.
+8. Generate Word report using `assets/报告格式模板-20250929.docx` and the `docx` skill; pause.
+9. Run report QC and write `workflow/07_report_qc.md`.
+
+## References
+
+- Stage rules: `references/workflow-stages.md`
+- Manifest schema: `references/manifest-schema.md`
+- Module library: `references/module-library.md`
+- DOCX extraction cues: `references/docx-patterns.md`
+- Report template mapping: `references/report-template-map.md`
+- Report QC: `references/report-qc-rules.md`
 
 ## Parser Command
 
-Use this pattern from the skill directory, replacing paths as needed:
-
 ```bash
-python scripts/extract_docx_outline.py /path/to/input.docx --out-dir tmp/docx-analysis-plan/<document-stem>
+python scripts/extract_docx_outline.py /path/to/input.docx --out-dir workflow/_docx_outline
 ```
-
-If that Python cannot import `docx`, continue with the script's OOXML fallback. If richer tracked-change or formatting extraction is needed, use the installed `docx` skill's `pandoc` or unpack workflow. Ask the user which local environment has a DOCX parser only when both direct script extraction and DOCX-skill-guided fallback are unusable.
-
-## Maintenance
-
-When a future Word document introduces a reusable new analysis point, method module, figure type, dataset pattern, or recurring client note:
-
-- preserve it in the current generated plan;
-- update `references/module-library.md` for new analysis modules or SOP patterns;
-- update `references/docx-patterns.md` for document structure, wording, captions, or extraction cues;
-- update `references/output-schema.md` only when the final Markdown contract changes;
-- update `scripts/extract_docx_outline.py` when reliable extraction requires code;
-- run quick validation and at least one representative extraction after updating.

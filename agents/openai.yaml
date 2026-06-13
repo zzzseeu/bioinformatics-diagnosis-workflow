@@ -1,8 +1,8 @@
 interface:
-  display_name: "DOCX Analysis Plan Parser"
-  short_description: "Parse proposal Word docs into SOP-level bioinformatics analysis plans"
+  display_name: "生物信息诊断工作流"
+  short_description: "分阶段解析生信方案、生成分析计划、项目代码、人工任务和 Word 报告"
   brand_color: "#2E7D6E"
-  default_prompt: "Use $docx-analysis-plan-parser to parse a bioinformatics project proposal .docx and produce a complete SOP-level Chinese Markdown analysis plan."
+  default_prompt: "使用 $bioinformatics-diagnosis-workflow 解析生信项目方案 Word 文档，分阶段生成需求、manifest、分析计划、项目代码、人工任务、报告和质检结果。"
 
 policy:
   allow_implicit_invocation: true
