@@ -46,3 +46,18 @@ def test_reference_contracts_exist_and_include_required_rules():
         text = (ROOT / "references" / filename).read_text(encoding="utf-8")
         for term in terms:
             assert term in text
+
+
+def test_representative_code_templates_exist():
+    templates = {
+        "bulk_de_analysis.R": ["{{EXPRESSION_MATRIX}}", "{{GROUP_METADATA}}", "{{OUTPUT_DIR}}"],
+        "enrichment_clusterprofiler.R": ["{{GENE_LIST}}", "{{ORG_DB}}", "{{OUTPUT_DIR}}"],
+        "single_cell_qc_seurat.R": ["{{INPUT_10X_DIR}}", "{{PROJECT_ID}}", "{{OUTPUT_DIR}}"],
+    }
+    for filename, tokens in templates.items():
+        text = (ROOT / "templates" / "code" / filename).read_text(encoding="utf-8")
+        for token in tokens:
+            assert token in text
+        assert "Times New Roman" in text
+        assert "pdf" in text.lower()
+        assert "png" in text.lower()
