@@ -2,7 +2,7 @@
 
 ## 背景
 
-当前 `docx-analysis-plan-parser` skill 主要完成一件事：解析生信项目方案 `.docx`，提取项目背景、数据、模块、图表和注意事项，并输出 SOP 级中文 Markdown 分析计划。新的目标是将其升级并重命名为 `bioinformatics-diagnosis-workflow`（中文显示名：生物信息诊断工作流），面向诊断/机制类生信项目，覆盖单细胞、转录组、bulk、多组学和客户自测序数据。
+当前方案解析 skill 主要完成一件事：解析生信项目方案 `.docx`，提取项目背景、数据、模块、图表和注意事项，并输出 SOP 级中文 Markdown 分析计划。新的目标是将其升级并重命名为 `bioinformatics-diagnosis-workflow`（中文显示名：生物信息诊断工作流），面向诊断/机制类生信项目，覆盖单细胞、转录组、bulk、多组学和客户自测序数据。
 
 升级后的 skill 仍然保持一个用户入口，但内部拆分为阶段化工作流、代码模板、报告模板、manifest 规范和质检规则。默认每个阶段完成后暂停，等待用户确认再进入下一阶段。
 
@@ -11,7 +11,7 @@
 - skill 目录名：`bioinformatics-diagnosis-workflow`
 - metadata name：`bioinformatics-diagnosis-workflow`
 - 中文显示名：`生物信息诊断工作流`
-- 不兼容旧名，不在描述中保留 `docx-analysis-plan-parser`
+- 不兼容旧名，不在描述中保留旧入口
 - 触发场景：解析生信方案 Word、整理分析需求、核对需求与数据/结果、生成分析计划、生成项目分析代码、安排人工分析、基于结果生成 Word 报告、执行报告质检
 
 ## 依赖

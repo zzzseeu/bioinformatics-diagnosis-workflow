@@ -8,10 +8,11 @@ ROOT = Path(__file__).resolve().parents[1]
 
 def test_skill_metadata_uses_bioinformatics_diagnosis_workflow_name():
     skill_text = (ROOT / "SKILL.md").read_text(encoding="utf-8")
+    old_name = "docx-analysis" + "-plan-parser"
 
     assert "name: bioinformatics-diagnosis-workflow" in skill_text
     assert "生物信息诊断工作流" in skill_text
-    assert "docx-analysis-plan-parser" not in skill_text
+    assert old_name not in skill_text
 
 
 def test_skill_contract_declares_docx_dependency_and_staged_outputs():

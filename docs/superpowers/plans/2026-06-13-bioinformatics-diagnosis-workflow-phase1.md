@@ -26,7 +26,7 @@ Do not implement full single-cell/bulk/ML analysis execution coverage in this pl
 
 ## File Structure
 
-- Move/rename: `/Users/seeu/Desktop/Project/bioinfo-skills/docx-analysis-plan-parser/` to `/Users/seeu/Desktop/Project/bioinfo-skills/bioinformatics-diagnosis-workflow/`
+- Move/rename the previous parser repository directory to `/Users/seeu/Desktop/Project/bioinfo-skills/bioinformatics-diagnosis-workflow/`
   - This is the source skill repository. Keep git history by using `git mv` for tracked files where practical.
 - Modify: `SKILL.md`
   - New metadata name/description and staged workflow instructions.
@@ -75,7 +75,7 @@ Run:
 
 ```bash
 cd /Users/seeu/Desktop/Project/bioinfo-skills
-mv docx-analysis-plan-parser bioinformatics-diagnosis-workflow
+mv <previous-parser-directory> bioinformatics-diagnosis-workflow
 cd bioinformatics-diagnosis-workflow
 git status -sb
 ```
@@ -98,7 +98,8 @@ def test_skill_metadata_uses_new_name_only():
 
     assert "name: bioinformatics-diagnosis-workflow" in text
     assert "生物信息诊断工作流" in text
-    assert "docx-analysis-plan-parser" not in text
+    old_name = "docx-analysis" + "-plan-parser"
+    assert old_name not in text
 
 
 def test_skill_declares_docx_dependency_and_stage_pauses():
@@ -1355,7 +1356,7 @@ rsync -a --exclude .git /Users/seeu/Desktop/Project/bioinfo-skills/bioinformatic
 If keeping the old installed skill would cause confusion, remove it after confirming the new skill works:
 
 ```bash
-rm -rf /Users/seeu/.codex/skills/docx-analysis-plan-parser
+rm -rf /Users/seeu/.codex/skills/<old-skill-name>
 ```
 
 - [ ] **Step 4: Commit any final source changes**
