@@ -28,11 +28,11 @@ Use this skill for diagnosis/mechanism bioinformatics projects that start from a
 
 1. Parse proposal DOCX with the `docx` skill and `scripts/extract_docx_outline.py`.
 2. Write `workflow/01_requirements.md` and `workflow/01_requirements_manifest.csv`; pause.
-3. Check requirements against provided data/result directories; write `02_gap_check.*`; pause.
-4. Generate `03_analysis_plan.md` and `03_analysis_manifest.csv`; pause.
-5. Generate project code from `templates/code/`; run only safe automatic analyses or smoke tests; write `04_generated_code.md` and `04_code_manifest.csv`; pause.
-6. Write manual execution handoff files for long-running or non-code-stable modules; pause.
-7. Scan results and prepare report inputs; pause.
+3. Check requirements against provided data/result directories; write `workflow/02_gap_check.md` and `workflow/02_gap_check_manifest.csv`; pause.
+4. Generate `workflow/03_analysis_plan.md` and `workflow/03_analysis_manifest.csv`; pause.
+5. Generate project code from `templates/code/`; run only safe automatic analyses or smoke tests; write `workflow/04_generated_code.md` and `workflow/04_code_manifest.csv`; pause.
+6. Write `workflow/05_manual_tasks.md` and `workflow/05_manual_manifest.csv` for long-running or non-code-stable modules; pause.
+7. Scan results and prepare `workflow/06_report_inputs.md` and `workflow/06_report_manifest.csv`; pause.
 8. Generate Word report using `assets/报告格式模板-20250929.docx` and the `docx` skill; pause.
 9. Run report QC and write `workflow/07_report_qc.md`.
 

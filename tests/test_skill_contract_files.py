@@ -1,3 +1,5 @@
+import csv
+import zipfile
 from pathlib import Path
 
 
@@ -33,6 +35,8 @@ def test_report_template_asset_exists():
 
     assert asset.exists()
     assert asset.stat().st_size > 50_000
+    with zipfile.ZipFile(asset) as archive:
+        assert "word/document.xml" in archive.namelist()
 
 
 def test_reference_contracts_exist_and_include_required_rules():
@@ -46,6 +50,58 @@ def test_reference_contracts_exist_and_include_required_rules():
         text = (ROOT / "references" / filename).read_text(encoding="utf-8")
         for term in terms:
             assert term in text
+
+
+def test_skill_workflow_paths_match_stage_reference():
+    skill_text = (ROOT / "SKILL.md").read_text(encoding="utf-8")
+    stages_text = (ROOT / "references" / "workflow-stages.md").read_text(encoding="utf-8")
+    expected_paths = [
+        "workflow/01_requirements.md",
+        "workflow/01_requirements_manifest.csv",
+        "workflow/02_gap_check.md",
+        "workflow/02_gap_check_manifest.csv",
+        "workflow/03_analysis_plan.md",
+        "workflow/03_analysis_manifest.csv",
+        "workflow/04_generated_code.md",
+        "workflow/04_code_manifest.csv",
+        "workflow/05_manual_tasks.md",
+        "workflow/05_manual_manifest.csv",
+        "workflow/06_report_inputs.md",
+        "workflow/06_report_manifest.csv",
+        "workflow/07_report_qc.md",
+    ]
+
+    for path in expected_paths:
+        assert path in skill_text
+        assert path in stages_text
+
+
+def test_manifest_schema_header_is_parseable_csv():
+    schema_text = (ROOT / "references" / "manifest-schema.md").read_text(encoding="utf-8")
+    header = next(line for line in schema_text.splitlines() if line.startswith("stage,module_id"))
+    columns = next(csv.reader([header]))
+
+    assert columns == [
+        "stage",
+        "module_id",
+        "module_name",
+        "source_requirement",
+        "input_required",
+        "input_found",
+        "output_expected",
+        "output_found",
+        "execution_mode",
+        "code_template",
+        "generated_script",
+        "status",
+        "manual_action",
+        "report_section",
+        "notes",
+    ]
+
+
+def test_no_legacy_output_schema_reference_remains():
+    assert not (ROOT / "references" / "output-schema.md").exists()
 
 
 def test_representative_code_templates_exist():
