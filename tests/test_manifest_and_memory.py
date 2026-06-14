@@ -75,6 +75,45 @@ def test_build_manifest_rejects_malformed_header(tmp_path):
         raise AssertionError("Expected ValueError")
 
 
+def test_build_manifest_rejects_malformed_row_width(tmp_path):
+    module = load_script("build_manifest.py")
+    bad_manifest = tmp_path / "bad.csv"
+    header = ",".join(module.MANIFEST_COLUMNS)
+    row = ",".join(["value"] * (len(module.MANIFEST_COLUMNS) + 1))
+    bad_manifest.write_text(f"{header}\n{row}\n", encoding="utf-8")
+
+    try:
+        module.read_manifest(bad_manifest)
+    except ValueError as exc:
+        assert "Invalid manifest row width" in str(exc)
+    else:
+        raise AssertionError("Expected ValueError")
+
+
+def test_build_manifest_rejects_missing_row_cells(tmp_path):
+    module = load_script("build_manifest.py")
+    bad_manifest = tmp_path / "bad.csv"
+    header = ",".join(module.MANIFEST_COLUMNS)
+    bad_manifest.write_text(f"{header}\n03_analysis_plan,M01\n", encoding="utf-8")
+
+    try:
+        module.read_manifest(bad_manifest)
+    except ValueError as exc:
+        assert "Invalid manifest row width" in str(exc)
+    else:
+        raise AssertionError("Expected ValueError")
+
+
+def test_build_manifest_main_returns_nonzero_for_user_input_errors(tmp_path, capsys):
+    module = load_script("build_manifest.py")
+
+    exit_code = module.main([str(tmp_path / "missing.csv")])
+    captured = capsys.readouterr()
+
+    assert exit_code == 1
+    assert "error:" in captured.err
+
+
 def test_update_project_memory_creates_state_summary(tmp_path):
     module = load_script("update_project_memory.py")
     memory = tmp_path / "workflow" / "PROJECT_MEMORY.md"
@@ -125,3 +164,29 @@ def test_update_project_memory_creates_state_summary(tmp_path):
     assert "| 01_requirements | completed | workflow/01_requirements.md |  |" in text
     assert "| hdWGCNA | smoke_test_then_manual | ready | pending | pending | pending |" in text
     assert "等待客户确认关键细胞" in text
+
+
+def test_update_project_memory_escapes_markdown_table_cells(tmp_path):
+    module = load_script("update_project_memory.py")
+    memory = tmp_path / "workflow" / "PROJECT_MEMORY.md"
+
+    module.write_project_memory(
+        memory,
+        project={},
+        stages=[
+            {
+                "stage": "01_requirements",
+                "status": "completed",
+                "artifact": "workflow/01_requirements.md",
+                "question": "A | B?\n请确认",
+            }
+        ],
+        modules=[],
+        decisions=[],
+        blockers=[],
+        paths={},
+        handoff="",
+    )
+
+    text = memory.read_text(encoding="utf-8")
+    assert "A \\| B?<br>请确认" in text

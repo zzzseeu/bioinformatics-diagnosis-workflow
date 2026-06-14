@@ -6,12 +6,16 @@ from __future__ import annotations
 from pathlib import Path
 
 
+def _cell(value: str) -> str:
+    return str(value).replace("\n", "<br>").replace("|", "\\|")
+
+
 def _table(headers: list[str], rows: list[list[str]]) -> str:
     lines = [
-        "| " + " | ".join(headers) + " |",
+        "| " + " | ".join(_cell(header) for header in headers) + " |",
         "| " + " | ".join("---" for _ in headers) + " |",
     ]
-    lines.extend("| " + " | ".join(row) + " |" for row in rows)
+    lines.extend("| " + " | ".join(_cell(cell) for cell in row) + " |" for row in rows)
     return "\n".join(lines)
 
 

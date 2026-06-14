@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import argparse
 import csv
+import sys
 from pathlib import Path
 
 
@@ -72,16 +73,24 @@ def read_manifest(path: str | Path) -> list[dict[str, str]]:
         reader = csv.DictReader(handle)
         if reader.fieldnames != MANIFEST_COLUMNS:
             raise ValueError(f"Invalid manifest header: {reader.fieldnames}")
-        return list(reader)
+        rows = list(reader)
+    for index, row in enumerate(rows, start=2):
+        if None in row or any(value is None for value in row.values()):
+            raise ValueError(f"Invalid manifest row width at line {index}")
+    return rows
 
 
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description="Validate a workflow manifest CSV.")
     parser.add_argument("manifest")
     args = parser.parse_args(argv)
-    rows = read_manifest(args.manifest)
-    for row in rows:
-        normalize_row(row)
+    try:
+        rows = read_manifest(args.manifest)
+        for row in rows:
+            normalize_row(row)
+    except (OSError, ValueError) as exc:
+        print(f"error: {exc}", file=sys.stderr)
+        return 1
     print(f"validated {len(rows)} rows")
     return 0
 
