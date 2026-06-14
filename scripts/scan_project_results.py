@@ -26,7 +26,7 @@ def scan_paths(paths: list[str | Path]) -> list[dict[str, str]]:
     for base in paths:
         root = Path(base)
         if not root.exists():
-            continue
+            raise FileNotFoundError(f"Scan root does not exist: {root}")
         for file_path in sorted(path for path in root.rglob("*") if path.is_file()):
             kind = classify(file_path)
             if kind == "other":
