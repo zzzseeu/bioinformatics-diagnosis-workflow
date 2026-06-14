@@ -69,7 +69,10 @@ def write_manifest(path: str | Path, rows: list[dict[str, object]]) -> None:
 
 def read_manifest(path: str | Path) -> list[dict[str, str]]:
     with Path(path).open(encoding="utf-8-sig", newline="") as handle:
-        return list(csv.DictReader(handle))
+        reader = csv.DictReader(handle)
+        if reader.fieldnames != MANIFEST_COLUMNS:
+            raise ValueError(f"Invalid manifest header: {reader.fieldnames}")
+        return list(reader)
 
 
 def main(argv: list[str] | None = None) -> int:
