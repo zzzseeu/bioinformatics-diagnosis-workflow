@@ -2,6 +2,13 @@
 
 Use these concise SOP patterns when the Word document includes matching modules. This is not a closed taxonomy; preserve new modules from the source document.
 
+## Execution Mode Hints
+
+- Bulk/table analyses can be `auto` when inputs are small and complete.
+- Single-cell and long-running analyses default to `smoke_test_then_manual`.
+- GUI, online database, or Cytoscape-heavy steps default to `manual`.
+- Report-only sections use `report_only`.
+
 ## Bulk Differential Expression
 目的: 筛选疾病组与对照组差异表达基因。
 输入: 表达矩阵、分组信息、平台注释。
