@@ -1,3 +1,15 @@
+rm(list = ls()); gc()
+pwd <- "{{PROJECT_DIR}}"
+res_folder <- "{{step_num}}_{{step_name}}"
+
+setwd(pwd)
+
+if (!dir.exists(paths = file.path(res_folder))) {
+  dir.create(res_folder)
+}
+
+setwd(res_folder)
+
 suppressPackageStartupMessages({
   library(limma)
   library(ggplot2)
@@ -9,9 +21,8 @@ group_metadata <- "{{GROUP_METADATA}}"
 group_column <- "{{GROUP_COLUMN}}"
 case_label <- "{{CASE_LABEL}}"
 control_label <- "{{CONTROL_LABEL}}"
-output_dir <- "{{OUTPUT_DIR}}"
+output_dir <- "."
 
-dir.create(output_dir, recursive = TRUE, showWarnings = FALSE)
 expr <- read.csv(expression_matrix, row.names = 1, check.names = FALSE)
 meta <- read.csv(group_metadata, check.names = FALSE)
 stopifnot("sample" %in% colnames(meta))

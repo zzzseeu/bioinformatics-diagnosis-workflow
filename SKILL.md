@@ -19,6 +19,22 @@ Use this skill for diagnosis/mechanism bioinformatics projects that start from a
 - Use Markdown plus `manifest.csv` outputs as user-facing artifacts; JSON is not a primary deliverable.
 - Create and update `workflow/PROJECT_MEMORY.md` for each project.
 - Generate project-specific code from templates when possible.
+- Generated R analysis scripts must be named `r.{{step_num}}_{{step_name}}.R`, and their matching result directory must be `{{step_num}}_{{step_name}}`.
+- Every generated R analysis script must start from this directory template, then perform all work inside `res_folder`:
+
+```r
+rm(list = ls()); gc()
+pwd <- "{{PROJECT_DIR}}"
+res_folder <- "{{step_num}}_{{step_name}}"
+
+setwd(pwd)
+
+if (!dir.exists(paths = file.path(res_folder))) {
+  dir.create(res_folder)
+}
+
+setwd(res_folder)
+```
 - For large single-cell or long-running tasks, run only temporary smoke tests, delete temporary test data/logs, and hand off full execution to the user.
 - Do not keep temporary smoke-test data, logs, or pass/fail records in the project directory.
 - Final report filenames must use `report/<项目编号>_<YYYYMMDD>_report.docx`, with `_v2`, `_v3`, etc. to avoid overwrites.

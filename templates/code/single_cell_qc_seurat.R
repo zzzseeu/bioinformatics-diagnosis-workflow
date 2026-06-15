@@ -1,3 +1,15 @@
+rm(list = ls()); gc()
+pwd <- "{{PROJECT_DIR}}"
+res_folder <- "{{step_num}}_{{step_name}}"
+
+setwd(pwd)
+
+if (!dir.exists(paths = file.path(res_folder))) {
+  dir.create(res_folder)
+}
+
+setwd(res_folder)
+
 suppressPackageStartupMessages({
   library(Seurat)
   library(ggplot2)
@@ -5,8 +17,7 @@ suppressPackageStartupMessages({
 
 input_10x_dir <- "{{INPUT_10X_DIR}}"
 project_id <- "{{PROJECT_ID}}"
-output_dir <- "{{OUTPUT_DIR}}"
-dir.create(output_dir, recursive = TRUE, showWarnings = FALSE)
+output_dir <- "."
 counts <- Read10X(input_10x_dir)
 obj <- CreateSeuratObject(counts = counts, project = project_id, min.cells = 3, min.features = 200)
 obj[["percent.mt"]] <- PercentageFeatureSet(obj, pattern = "^MT-|^mt-")
