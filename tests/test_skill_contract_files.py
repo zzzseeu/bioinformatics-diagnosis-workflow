@@ -24,6 +24,15 @@ def test_skill_contract_declares_docx_dependency_and_staged_outputs():
     assert "PROJECT_MEMORY.md" in skill_text
 
 
+def test_skill_contract_declares_r_script_directory_and_filename_rules():
+    skill_text = (ROOT / "SKILL.md").read_text(encoding="utf-8")
+
+    assert "{{step_num}}_{{step_name}}" in skill_text
+    assert "r.{{step_num}}_{{step_name}}.R" in skill_text
+    assert "pwd <-" in skill_text
+    assert "res_folder <-" in skill_text
+
+
 def test_openai_agent_contract_uses_bioinformatics_diagnosis_workflow():
     agent_text = (ROOT / "agents" / "openai.yaml").read_text(encoding="utf-8")
 
@@ -107,9 +116,9 @@ def test_no_legacy_output_schema_reference_remains():
 
 def test_representative_code_templates_exist():
     templates = {
-        "bulk_de_analysis.R": ["{{EXPRESSION_MATRIX}}", "{{GROUP_METADATA}}", "{{OUTPUT_DIR}}"],
-        "enrichment_clusterprofiler.R": ["{{GENE_LIST}}", "{{ORG_DB}}", "{{OUTPUT_DIR}}"],
-        "single_cell_qc_seurat.R": ["{{INPUT_10X_DIR}}", "{{PROJECT_ID}}", "{{OUTPUT_DIR}}"],
+        "bulk_de_analysis.R": ["{{EXPRESSION_MATRIX}}", "{{GROUP_METADATA}}", "{{step_num}}_{{step_name}}"],
+        "enrichment_clusterprofiler.R": ["{{GENE_LIST}}", "{{ORG_DB}}", "{{step_num}}_{{step_name}}"],
+        "single_cell_qc_seurat.R": ["{{INPUT_10X_DIR}}", "{{PROJECT_ID}}", "{{step_num}}_{{step_name}}"],
     }
     for filename, tokens in templates.items():
         text = (ROOT / "templates" / "code" / filename).read_text(encoding="utf-8")
@@ -118,3 +127,22 @@ def test_representative_code_templates_exist():
         assert "Times New Roman" in text
         assert "pdf" in text.lower()
         assert "png" in text.lower()
+
+
+def test_r_code_templates_start_in_project_and_step_result_dirs():
+    expected_start = [
+        "rm(list = ls()); gc()",
+        'pwd <- "{{PROJECT_DIR}}"',
+        'res_folder <- "{{step_num}}_{{step_name}}"',
+        "",
+        "setwd(pwd)",
+        "",
+        "if (!dir.exists(paths = file.path(res_folder))) {",
+        "  dir.create(res_folder)",
+        "}",
+        "",
+        "setwd(res_folder)",
+    ]
+    for template_path in sorted((ROOT / "templates" / "code").glob("*.R")):
+        lines = template_path.read_text(encoding="utf-8").splitlines()
+        assert lines[: len(expected_start)] == expected_start
